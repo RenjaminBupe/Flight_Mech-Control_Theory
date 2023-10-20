@@ -18,9 +18,9 @@ class ComputeTrim:
         self.forces_mom=Aero()
         self.mav=UAVdynamics(SIM.ts_simulation,P.states0)
 
-    def compute_trim(self, Va, Y, R, alpha, beta):
+    def compute_trim(self, Va, Y, R):
         x0 = np.array([0,0,0])
-        res = minimize(lambda x: self.compute_trim_cost(x,Va,Y,R, alpha, beta), x0,
+        res = minimize(lambda x: self.compute_trim_cost(x,Va,Y,R), x0,
         method='nelder-mead',options={'xatol': 1e-8, 'disp': False})
         x_trim, u_trim=self.compute_trim_states_input(res.x,Va,Y,R)
         return (x_trim, u_trim)
@@ -125,10 +125,10 @@ class ComputeTrim:
         # print(x_trim)
         return (x_trim, u_trim)
     
-    def compute_trim_cost(self, x,Va,Y,R, alpha, beta):
+    def compute_trim_cost(self, x,Va,Y,R):
         #inputs
-        #alpha=x[0]
-        #beta=x[1]
+        alpha=x[0]
+        beta=x[1]
         phi=x[2]
         #Va=35
         #R=99999999999

@@ -36,18 +36,18 @@ Va = 35
 sim_time = SIM.start_time
 
 # initialize plots
-forces = UAV_anim.fig.add_subplot(331)
-for_p = forces.get_position(); for_p.x0 += 0.1; for_p.x1 += 0.1; forces.set_position(for_p)
-moments = UAV_anim.fig.add_subplot(334)
-mom_p = moments.get_position(); mom_p.x0 += 0.1; mom_p.x1 += 0.1; moments.set_position(mom_p)
-position = UAV_anim.fig.add_subplot(337)
-pos_p = position.get_position(); pos_p.x0 += 0.1; pos_p.x1 += 0.1; position.set_position(pos_p)
-velocity = UAV_anim.fig.add_subplot(333)
-vel_p = velocity.get_position(); vel_p.x0 += 0.1; vel_p.x1 += 0.1; velocity.set_position(vel_p)
-angles = UAV_anim.fig.add_subplot(336)
-ang_p = angles.get_position(); ang_p.x0 += 0.1; ang_p.x1 += 0.1; angles.set_position(ang_p)
-rates = UAV_anim.fig.add_subplot(339)
-rat_p = rates.get_position(); rat_p.x0 += 0.1; rat_p.x1 += 0.1; rates.set_position(rat_p)
+forces = UAV_anim.fig.add_subplot(531)
+for_p = forces.get_position(); for_p.x0 -= 0.075; for_p.x1 -= 0.05; forces.set_position(for_p)
+moments = UAV_anim.fig.add_subplot(537)
+mom_p = moments.get_position(); mom_p.x0 -= 0.075; mom_p.x1 -= 0.05; moments.set_position(mom_p)
+position = UAV_anim.fig.add_subplot(5,3,13)
+pos_p = position.get_position(); pos_p.x0 -= 0.075; pos_p.x1 -= 0.05; position.set_position(pos_p)
+velocity = UAV_anim.fig.add_subplot(533)
+vel_p = velocity.get_position(); vel_p.x0 += 0.075; vel_p.x1 += 0.05; velocity.set_position(vel_p)
+angles = UAV_anim.fig.add_subplot(539)
+ang_p = angles.get_position(); ang_p.x0 += 0.075; ang_p.x1 += 0.05; angles.set_position(ang_p)
+rates = UAV_anim.fig.add_subplot(5,3,15)
+rat_p = rates.get_position(); rat_p.x0 += 0.075; rat_p.x1 += 0.05; rates.set_position(rat_p)
 
 #fig, (forces, moments, position, velocity, angles, rates) = plt.subplots(6, 1, sharex = True)
 
@@ -76,36 +76,50 @@ st_p = np.array([0])
 
 # main simulation loop
 print("Press Command-Q to exit...")
-pn=state[0][0]
-pe=state[1][0]
-pd=state[2][0]
-u = state[3][0]
-v = state[4][0]
-w = state[5][0]
-phi=state[6][0]
-theta=state[7][0]
-psi=state[8][0]
-p = state[9][0]
-q = state[10][0]
-r = state[11][0]
+#pn=state[0][0]
+#pe=state[1][0]
+#pd=state[2][0]
+#u = state[3][0]
+#v = state[4][0]
+#w = state[5][0]
+#phi=state[6][0]
+#theta=state[7][0]
+#psi=state[8][0]
+#p = state[9][0]
+#q = state[10][0]
+#r = state[11][0]
 
 
 
 # Trim paramters
 ##  Param set 1  ##
-Va_ = 35; Y = 0; R = np.inf
+Va = 35; Y = 0; R = np.inf
 ##  Param set 2  ##
-#Va_ = 35; Y = 0; R = 200 #R = -200
+#Va = 35; Y = 0; R = 200 #R = -200
 ##  Param set 3  ##
-#Va_ = 35; Y = np.deg2rad(10); R = 100
+#Va = 35; Y = np.deg2rad(10); R = 100
 
 
-#x_trim, u_trim = Trim.compute_trim(Va, Y, R, 0, 0)
+x_trim, u_trim = Trim.compute_trim(Va, Y, R)
 #d_e, d_t, d_a, d_r = u_trim.flatten()
-#print(d_e)
-#print(d_t)
-#print(d_a)
-#print(d_r)
+pn = -100
+pe = 0
+pd = 0
+u = x_trim.item(3)
+v = x_trim.item(4)
+w = x_trim.item(5)
+phi = x_trim.item(6)
+theta = x_trim.item(7)
+psi = x_trim.item(8)
+p = x_trim.item(9)
+q = x_trim.item(10)
+r = x_trim.item(11)
+
+states = np.array([pn, pe, pd, u, v, w, phi, theta, psi, p, q, r])
+state0 = np.array([[pn],[pe],[pd],[u],[v],[w],[phi],[theta],[psi],[p],[q],[r]])
+UAV.state = np.ndarray.copy(state0)
+
+
 
 while sim_time < SIM.end_time:
    # if sim_time <= 1:
@@ -124,13 +138,13 @@ while sim_time < SIM.end_time:
     
     # update values/state
     Va, alpha, beta = wind.wind_char(state, Va, sim_time)
-    x_trim, u_trim = Trim.compute_trim(Va_, Y, R, alpha, beta)
+    #x_trim, u_trim = Trim.compute_trim(Va_, Y, R, alpha, beta)
     d_e, d_t, d_a, d_r = u_trim.flatten()
     fx, fy, fz = Aero.forces(state, d_e, d_a, d_r, d_t, alpha, beta, Va)
     l, m, n = Aero.moments(state, d_e, d_a, d_r, d_t, alpha, beta, Va)  
     state = UAV.update(fx, fy, fz, l, m, n)
     pn, pe, pd, u, v, w, phi, theta, psi, p, q, r = state.flatten()
-    UAV_anim.update(-pe, pn, pd, phi, theta, psi) # -pd for height
+    UAV_anim.update(pe, pn, pd, phi, theta, psi) # -pd for height
 
     #append force/moment plot lists
     fx_p = np.append(fx_p, fx)
