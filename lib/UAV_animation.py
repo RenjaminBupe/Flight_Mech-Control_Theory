@@ -24,7 +24,7 @@ class UAV_animation():
         #self.fig = plt.figure(1)
         self.fig = plt.figure(figsize=(6,6))
         #self.ax = self.fig.add_subplot(111, projection='3d')
-        self.ax = self.fig.add_subplot(1, 2, 1, projection='3d')
+        self.ax = self.fig.add_subplot(1, 3, 2, projection='3d')
         self.ax.set_xlim([-10,10])
         self.ax.set_ylim([-10,10])
         self.ax.set_zlim([-10,10])
@@ -74,7 +74,7 @@ class UAV_animation():
         # create m by n copies of pos_ned and used for translation
         ned_rep= np.tile(pos_ned, (16,1))
 
-        R=Euler2Rotation(phi,theta,psi)
+        R=Euler2Rotation(phi,theta,-psi)
 
         #rotate 
         vr=np.matmul(R,V.T).T
