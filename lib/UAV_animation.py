@@ -69,7 +69,7 @@ class UAV_animation():
         #              [0, -4.25, 0],     #V_Tail Vert (15)
         #              [0, -5, -1.5]])     #V_Tail Vert (16)
         
-        pos_ned = np.array([pe, pn, pd])
+        pos_ned = np.array([pn, pe, pd])
 
         # create m by n copies of pos_ned and used for translation
         ned_rep= np.tile(pos_ned, (16,1))
@@ -118,8 +118,8 @@ class UAV_animation():
         #self.ax.set_ylim([pe-10,pe+10])
         #self.ax.set_zlim([pd-10,pd+10])
 
-    def draw_UAV(self, pe, pn, pd, phi, theta, psi):
-        faces=self.UAV_vertices(pe,pn,pd,phi,theta,psi)
+    def draw_UAV(self, pn, pe, pd, phi, theta, psi):
+        faces=self.UAV_vertices(pn,pe,pd,phi,theta,psi)
         #x_axis = self.ax.xaxis
         #y_axis = self.ax.yaxis
         #z_axis = self.ax.zaxis

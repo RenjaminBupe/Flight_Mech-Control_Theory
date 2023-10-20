@@ -42,6 +42,10 @@ moments = UAV_anim.fig.add_subplot(537)
 mom_p = moments.get_position(); mom_p.x0 -= 0.075; mom_p.x1 -= 0.05; moments.set_position(mom_p)
 position = UAV_anim.fig.add_subplot(5,3,13)
 pos_p = position.get_position(); pos_p.x0 -= 0.075; pos_p.x1 -= 0.05; position.set_position(pos_p)
+deflection = UAV_anim.fig.add_subplot(5,3,14)
+def_p = deflection.get_position(); def_p.x0 -= 0.0; def_p.x1 -= 0.0; deflection.set_position(def_p)
+throttle = UAV_anim.fig.add_subplot(20,3,2)
+thr_p = throttle.get_position(); thr_p.x0 -= 0.0; thr_p.x1 -= 0.0; throttle.set_position(thr_p)
 velocity = UAV_anim.fig.add_subplot(533)
 vel_p = velocity.get_position(); vel_p.x0 += 0.075; vel_p.x1 += 0.05; velocity.set_position(vel_p)
 angles = UAV_anim.fig.add_subplot(539)
@@ -71,6 +75,9 @@ fz_p = np.array([0])
 l_p = np.array([0])
 m_p = np.array([0])
 n_p = np.array([0])
+d_ep = np.array([0])
+d_ap = np.array([0])
+d_rp = np.array([0])
 st_p = np.array([0])
 
 
@@ -89,19 +96,20 @@ print("Press Command-Q to exit...")
 #q = state[10][0]
 #r = state[11][0]
 
-
+#Va_ = 35; Y = np.deg2rad(7); R = np.inf
 
 # Trim paramters
 ##  Param set 1  ##
-Va = 35; Y = 0; R = np.inf
+Va_ = 35; Y = 0; R = np.inf
 ##  Param set 2  ##
-#Va = 35; Y = 0; R = 200 #R = -200
+#Va_ = 35; Y = 0; R = 200 #R = -200
 ##  Param set 3  ##
-#Va = 35; Y = np.deg2rad(10); R = 100
+#Va_ = 35; Y = np.deg2rad(10); R = 100
 
 
-x_trim, u_trim = Trim.compute_trim(Va, Y, R)
-#d_e, d_t, d_a, d_r = u_trim.flatten()
+
+x_trim, u_trim = Trim.compute_trim(Va_, Y, R)
+d_e, d_t, d_a, d_r = u_trim.flatten()
 pn = -100
 pe = 0
 pd = 0
@@ -115,6 +123,12 @@ p = x_trim.item(9)
 q = x_trim.item(10)
 r = x_trim.item(11)
 
+print("--- Trim Conditions ---")
+print(f"E: {np.rad2deg(d_e):.2f} deg")
+print(f"T: {d_t*100:.2f} %")
+print(f"A: {np.rad2deg(d_a):.2f} deg")
+print(f"R: {np.rad2deg(d_r):.2f} deg")
+
 states = np.array([pn, pe, pd, u, v, w, phi, theta, psi, p, q, r])
 state0 = np.array([[pn],[pe],[pd],[u],[v],[w],[phi],[theta],[psi],[p],[q],[r]])
 UAV.state = np.ndarray.copy(state0)
@@ -122,19 +136,6 @@ UAV.state = np.ndarray.copy(state0)
 
 
 while sim_time < SIM.end_time:
-   # if sim_time <= 1:
-   #     d_e = -np.deg2rad(15)
-   # elif sim_time <= 2:
-   #     d_e = np.deg2rad(15)
-   # elif sim_time <= 3:
-   #     d_r = np.deg2rad(5)
-   # elif sim_time <= 4:
-   #     d_r = -np.deg2rad(5)
-   # elif sim_time <= 5:
-   #     d_a = np.deg2rad(10)
-   # elif sim_time <= 6:
-   #     d_a = -np.deg2rad(10)
-
     
     # update values/state
     Va, alpha, beta = wind.wind_char(state, Va, sim_time)
@@ -144,7 +145,7 @@ while sim_time < SIM.end_time:
     l, m, n = Aero.moments(state, d_e, d_a, d_r, d_t, alpha, beta, Va)  
     state = UAV.update(fx, fy, fz, l, m, n)
     pn, pe, pd, u, v, w, phi, theta, psi, p, q, r = state.flatten()
-    UAV_anim.update(pe, pn, pd, phi, theta, psi) # -pd for height
+    UAV_anim.update(pn, pe, pd, phi, theta, psi) # -pd for height
 
     #append force/moment plot lists
     fx_p = np.append(fx_p, fx)
@@ -168,15 +169,22 @@ while sim_time < SIM.end_time:
     p_p = np.append(p_p, p)
     q_p = np.append(q_p, q)
     r_p = np.append(r_p, r)
+    d_ep = np.append(d_ep, d_e)
+    d_ap = np.append(d_ap, d_a)
+    d_rp = np.append(d_rp, d_r)
     
     # plot
-    forces.clear(); moments.clear(); position.clear(); velocity.clear(); angles.clear(); rates.clear()
+    forces.clear(); moments.clear(); position.clear(); deflection.clear(); throttle.clear(); velocity.clear(); angles.clear(); rates.clear()
     forces.plot(st_p, fx_p, label='$F_x$'); forces.plot(st_p, fy_p, label='$F_y$'); forces.plot(st_p, fz_p, label='$F_z$')
     forces.legend(loc='upper right'); forces.set_title('Input Forces'); forces.grid(); forces.set_ylabel('N')
     moments.plot(st_p, l_p, label='$l$'); moments.plot(st_p, m_p, label='$m$'); moments.plot(st_p, n_p, label='$n$')
     moments.legend(loc='upper right'); moments.set_title('Input Moments'); moments.grid(); moments.set_ylabel('N*m')
     position.plot(st_p, pn_p, label='$p_n$'); position.plot(st_p, pe_p, label='$p_e$'); position.plot(st_p, pd_p, label='$p_d$')
     position.legend(loc='upper right'); position.set_title('Position'); position.grid(); position.set_ylabel('m')
+    deflection.plot(st_p, d_ep, label='$d_e$'); deflection.plot(st_p, d_ap, label='$d_a$'); deflection.plot(st_p, d_rp, label='$d_r$')
+    deflection.legend(loc='upper right'); deflection.set_title('Deflection'); deflection.grid(); deflection.set_ylabel('rads')
+    throttle.bar(0, d_t); throttle.set_ylim(0, 1); throttle.set_xticklabels("")
+    throttle.set_xticks([]); throttle.set_title("Throttle")
     velocity.plot(st_p, u_p, label='$u$'); velocity.plot(st_p, v_p, label='$v$'); velocity.plot(st_p, w_p, label='$w$')
     velocity.legend(loc='upper right'); velocity.set_title('Velocity'); velocity.grid(); velocity.set_ylabel('m/s')
     angles.plot(st_p, phi_p, label='$/phi$'); angles.plot(st_p, theta_p, label='$/theta$'); angles.plot(st_p, psi_p, label='$/psi$')
